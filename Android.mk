@@ -24,8 +24,6 @@ jemalloc_common_cflags := \
 	-Wno-type-limits \
 
 # These parameters change the way jemalloc works.
-#   ANDROID_ALWAYS_PURGE
-#     If defined, always purge immediately when a page is purgeable.
 #   ANDROID_MAX_ARENAS=XX
 #     The total number of arenas will be less than or equal to this number.
 #     The number of arenas will be calculated as 2 * the number of cpus
@@ -44,16 +42,20 @@ jemalloc_common_cflags := \
 #     1 << XX is the default chunk size used by the system. Decreasing this
 #     usually decreases the amount of PSS used, but can increase
 #     fragmentation.
+## Default to a single arena for svelte configurations to minimize
+## PSS consumed by jemalloc.
 jemalloc_common_cflags += \
-	-DANDROID_MAX_ARENAS=2 \
-	-DANDROID_TCACHE_NSLOTS_SMALL_MAX=8 \
-	-DANDROID_TCACHE_NSLOTS_LARGE=16 \
+        -DANDROID_MAX_ARENAS=1 \
 	-DANDROID_LG_TCACHE_MAXCLASS_DEFAULT=16 \
 
 # Only enable the tcache on non-svelte configurations, to save PSS.
 ifneq ($(MALLOC_SVELTE),true)
 jemalloc_common_cflags += \
-	-DJEMALLOC_TCACHE
+        -UANDROID_MAX_ARENAS \
+        -DANDROID_MAX_ARENAS=2 \
+        -DJEMALLOC_TCACHE \
+        -DANDROID_TCACHE_NSLOTS_SMALL_MAX=8 \
+        -DANDROID_TCACHE_NSLOTS_LARGE=16
 endif
 
 # Use a 512K chunk size on 32 bit systems.
