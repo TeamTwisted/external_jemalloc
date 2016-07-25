@@ -41,6 +41,7 @@ int je_iterate(uintptr_t base, size_t size,
   uintptr_t end = CHUNK_CEILING(base + size);
 
   while (ptr < end) {
+    assert(ptr == (uintptr_t)CHUNK_ADDR2BASE(ptr));
     extent_node_t *node;
 
     node = chunk_lookup((void *)ptr, false);
@@ -67,7 +68,7 @@ int je_iterate(uintptr_t base, size_t size,
     } else if ((uintptr_t)extent_node_addr_get(node) == ptr) {
       /* Huge allocation */
       callback(ptr, extent_node_size_get(node), arg);
-      ptr += extent_node_size_get(node);
+      ptr = CHUNK_CEILING(ptr + extent_node_size_get(node));
     }
   }
 
@@ -100,7 +101,7 @@ static void je_iterate_chunk(arena_chunk_t *chunk,
       void *rpages;
 
       size = arena_mapbits_large_size_get(chunk, pageind);
-      rpages = arena_miscelm_to_rpages(arena_miscelm_get(chunk, pageind));
+      rpages = arena_miscelm_to_rpages(arena_miscelm_get_mutable(chunk, pageind));
       callback((uintptr_t)rpages, size, arg);
     } else {
       /* Run of small allocations */
@@ -109,7 +110,7 @@ static void je_iterate_chunk(arena_chunk_t *chunk,
 
       assert(arena_mapbits_small_runind_get(chunk, pageind) == pageind);
       binind = arena_mapbits_binind_get(chunk, pageind);
-      run = &arena_miscelm_get(chunk, pageind)->run;
+      run = &arena_miscelm_get_mutable(chunk, pageind)->run;
       assert(run->binind == binind);
       size = arena_bin_info[binind].run_size;
 

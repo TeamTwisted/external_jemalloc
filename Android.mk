@@ -45,7 +45,6 @@ jemalloc_common_cflags := \
 #     usually decreases the amount of PSS used, but can increase
 #     fragmentation.
 jemalloc_common_cflags += \
-	-DANDROID_ALWAYS_PURGE \
 	-DANDROID_MAX_ARENAS=2 \
 	-DANDROID_TCACHE_NSLOTS_SMALL_MAX=8 \
 	-DANDROID_TCACHE_NSLOTS_LARGE=16 \
@@ -99,6 +98,7 @@ jemalloc_lib_src_files := \
 	src/ticker.c \
 	src/tsd.c \
 	src/util.c \
+	src/witness.c \
 
 #-----------------------------------------------------------------------
 # jemalloc static library
@@ -127,6 +127,8 @@ LOCAL_SRC_FILES := \
 # This is linked into libc, which asan runtime library depends on.
 LOCAL_SANITIZE := never
 
+LOCAL_CXX_STL := none
+
 include $(BUILD_STATIC_LIBRARY)
 
 #-----------------------------------------------------------------------
@@ -153,6 +155,8 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SRC_FILES := \
 	$(jemalloc_lib_src_files) \
+
+LOCAL_CXX_STL := none
 
 include $(BUILD_STATIC_LIBRARY)
 
@@ -196,6 +200,8 @@ LOCAL_SRC_FILES := $(jemalloc_testlib_srcs)
 
 LOCAL_WHOLE_STATIC_LIBRARIES := libjemalloc_jet
 
+LOCAL_CXX_STL := none
+
 include $(BUILD_STATIC_LIBRARY)
 #include $(BUILD_SHARED_LIBRARY)
 
@@ -203,10 +209,13 @@ include $(BUILD_STATIC_LIBRARY)
 # jemalloc unit tests
 #-----------------------------------------------------------------------
 jemalloc_unit_tests := \
+	test/unit/a0.c \
+	test/unit/arena_reset.c \
 	test/unit/atomic.c \
 	test/unit/bitmap.c \
 	test/unit/ckh.c \
 	test/unit/decay.c \
+	test/unit/fork.c \
 	test/unit/hash.c \
 	test/unit/junk.c \
 	test/unit/junk_alloc.c \
@@ -237,6 +246,7 @@ jemalloc_unit_tests := \
 	test/unit/ticker.c \
 	test/unit/tsd.c \
 	test/unit/util.c \
+	test/unit/witness.c \
 	test/unit/zero.c \
 
 $(foreach test,$(jemalloc_unit_tests), \
@@ -275,6 +285,8 @@ LOCAL_C_INCLUDES := \
 LOCAL_SRC_FILES := \
 	$(jemalloc_testlib_srcs) \
 	$(jemalloc_lib_src_files) \
+
+LOCAL_CXX_STL := none
 
 include $(BUILD_STATIC_LIBRARY)
 
